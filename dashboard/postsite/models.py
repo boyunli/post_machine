@@ -21,9 +21,11 @@ class Product(models.Model):
     '''
     存放爬取到的相册商品数据
     '''
+    website = models.ForeignKey(WebSite, verbose_name=_('WebSite'),
+                              on_delete=models.CASCADE)
     url = models.CharField(_('商品地址'), max_length=200, unique=True)
-    content = models.CharField(_('描述'), max_length=800)
-    images = models.CharField(_('图片'), max_length=800)
+    content = models.TextField(_('描述'))
+    images = models.TextField(_('图片'))
     is_posted = models.IntegerField(_('是否发过帖'), default=0)
     create_time = models.DateTimeField(_('创建时间'), default=timezone.now)
     update_time = models.DateTimeField(_('更新时间'), default=timezone.now)
@@ -34,6 +36,11 @@ class Product(models.Model):
     class Meta:
         verbose_name = verbose_name_plural = _('商品')
         db_table = 'postsite_product'
+
+    def update_status(self, is_posted):
+        self.is_posted = is_posted
+        self.update_time = timezone.now()
+        self.save()
 
 
 class Record(models.Model):

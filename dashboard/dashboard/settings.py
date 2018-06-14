@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'postsite',
 ]
 
 MIDDLEWARE = [
@@ -75,8 +77,12 @@ WSGI_APPLICATION = 'dashboard.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'post_machine',
+        'USER': 'root',
+        'PASSWORD': 'root.123',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
@@ -103,9 +109,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-hans'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
@@ -118,3 +124,68 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+
+###############  添加logger配置  ###############################
+LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '%(levelname)s %(asctime)s %(pathname)s:%(lineno)d:%(funcName)s: %(message)s',
+                },
+            'simple': {
+                'format': '%(levelname)s %(message)s',
+                },
+            },
+        'filters': {
+            'special': {
+                #'()': 'project.logging.SpecialFilter',
+                'foo': 'bar',
+                },
+            'require_debug_true': {
+                '()': 'django.utils.log.RequireDebugTrue',
+                },
+            },
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'verbose',
+                #'filters': ['special'],
+                },
+            'tieba-file': {
+                'level': 'DEBUG',
+                'class': 'logging.FileHandler',
+                'filename': BASE_DIR +'/log/tieba-develop.log',
+                },
+            'tieba-request-file': {
+                'level': 'DEBUG',
+                'class': 'logging.FileHandler',
+                'filename': BASE_DIR +'/log/tieba-develop-request.log',
+                },
+            'file': {
+                'level': 'DEBUG',
+                'class': 'logging.FileHandler',
+                'filename': BASE_DIR +'/log/django-request.log',
+                },
+            'null': {
+                'class': 'logging.NullHandler',
+                },
+            },
+        'loggers': {
+            'django': {
+                'handlers': ['file'],
+                'level': os.getenv('DJANGO_LOG_LEVEL', 'DEBUG'),
+                'propagate': True,
+                },
+            'tieba': {
+                'handlers': ['console', 'tieba-file'],
+                'level': os.getenv('TIEBA_LOG_LEVEL', 'DEBUG'),
+                'propagate': True,
+                },
+            'tieba_request': {
+                'handlers': ['console', 'tieba-request-file'],
+                'level': os.getenv('TIEBA_LOG_LEVEL', 'DEBUG'),
+                'propagate': True,
+                },
+            },
+    }

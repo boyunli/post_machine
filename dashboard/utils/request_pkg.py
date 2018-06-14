@@ -5,6 +5,7 @@ import random
 import json
 
 import requests
+from selenium import webdriver
 from fake_useragent import UserAgent
 from fake_useragent.errors import FakeUserAgentError
 
@@ -15,6 +16,26 @@ def _crawl_proxy_ip():
     socks = json.loads(resp.text)
     sock = random.choice(socks)
     return (sock[0], sock[1])
+
+def get_chrome_options(host=None, origin=None, referer=None, proxy=False):
+    options = webdriver.ChromeOptions()
+    prefs = {"profile.managed_default_content_settings.images":2}
+    options.add_argument('headless')
+    options.add_argument('lang=zh_CN.UTF-8')
+    options.add_argument('user-agent={}'.format(get_ua()))
+    options.add_argument('--start-maximized')
+    if host:
+        options.add_argument('host={}'.format(host))
+    if referer:
+        options.add_argument('referer={}'.format(referer))
+    if origin:
+        options.add_argument('origin={}'.format(origin))
+    # 设置不加载图片
+    options.add_experimental_option("prefs", prefs)
+    if proxy:
+        host, port = _crawl_proxy_ip()
+        options.add_argument('--proxy-server={}:{}'.format(host, port))
+    return options
 
 def phantomjs_args():
     host, port = _crawl_proxy_ip()
@@ -41,18 +62,23 @@ def get_ua():
     print('UserAgent: {}'.format(ua))
     return ua
 
-def rotate_headers(referer=None, origin=None):
+def rotate_headers(referer=None, origin=None, host=None):
     ua = get_ua()
-    return {
+    headers = {
         "User-Agent": ua,
-        "Referer" : referer if referer else None,
-        "Origin": origin if origin else None,
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
         "Accept-Encoding": "gzip, deflate, sdch, br",
         "Accept-Language": "zh-CN,zh;q=0.9",
         "Cache-Control": "no-cache",
         "Connection": "keep-alive",
     }
+    if referer:
+        headers['Referer'] = referer
+    elif origin:
+        headers['Origin'] = origin
+    elif host:
+        headers['Host'] = host
+    return headers
 
 def set_proxies():
     host, port = _crawl_proxy_ip()

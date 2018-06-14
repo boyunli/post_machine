@@ -1,5 +1,10 @@
 # encoding:utf-8
 import os
+os.environ.update({"DJANGO_SETTINGS_MODULE": "dashboard.settings"})
+import django
+django.setup()
+
+import time
 from urllib.parse import urljoin
 
 from selenium import webdriver
@@ -18,7 +23,7 @@ class UooTu:
         '''
         uid: 有图号
         '''
-        self.web = '有图相册',
+        self.web = '有图相册'
         self.uid = uid
         self.host = 'https://www.uootu.com'
         self.dir_path = os.path.join(BASE_DIR, '{}'.format(uid))
@@ -39,22 +44,29 @@ class UooTu:
 
         try:
             web = WebSite.objects.get(web=self.web, uid=self.uid)
-            urls = self._construct_url(web.total_page)
+            total_page = web.total_page if web.total_page else initial_pages
+            urls = self._construct_url(total_page)
         except:
             urls = self._construct_url(initial_pages)
         for url in urls:
             driver.get(url)
+            time.sleep(3)
             html = etree.HTML(driver.page_source)
             total_page = ''.join(html.xpath('//ul[@class="ivu-page"]//li[@class="ivu-page-next"]/preceding-sibling::li[1]/@title'))
+            total_page = int(total_page) if total_page else 0
             site = self._web_pipeline(total_page)
 
             hrefs = html.xpath('//div[@class="photos-container"]//div[@class="photos-item"]//a[@class="photos-item-link"]/@href')
             for href in hrefs:
-                driver.get(href)
-                html = etree.HTML(driver.page_source)
-                content = '' .join(html.xpath('//div[@class="textOmit title-content"]/text()'))
-                images = '**'.join(html.xpath('//div[@class="images-wrapper"]//img/@src'))
-                self._ps_pipeline(site, href, content, images)
+                try:
+                    driver.get(href)
+                    time.sleep(3)
+                    html = etree.HTML(driver.page_source)
+                    content = '' .join(html.xpath('//div[@class="textOmit title-content"]/text()'))
+                    images = '**'.join(html.xpath('//div[@class="images-wrapper"]//img/@src'))
+                    self._ps_pipeline(site, href, content, images)
+                except:
+                    continue
 
     def _web_pipeline(self, total_page):
         '''
@@ -73,7 +85,7 @@ class UooTu:
 
     def _ps_pipeline(self, website, url, content, images):
         product, created = Product.objects.get_or_create(
-            site=website,
+            website=website,
             url=url,
             defaults = {
                 'content': content,
