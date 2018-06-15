@@ -60,10 +60,11 @@ class UooTu:
             for href in hrefs:
                 try:
                     driver.get(href)
-                    time.sleep(3)
+                    time.sleep(5)
                     html = etree.HTML(driver.page_source)
                     content = '' .join(html.xpath('//div[@class="textOmit title-content"]/text()'))
-                    images = '**'.join(html.xpath('//div[@class="images-wrapper"]//img/@src'))
+                    srcs = html.xpath('//div[@class="images-wrapper"]//img/@src')
+                    images = '**'.join([src.replace('-zMin', '') for src in srcs if 'http://cdn' in src])
                     self._ps_pipeline(site, href, content, images)
                 except:
                     continue

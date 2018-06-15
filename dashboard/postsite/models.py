@@ -3,6 +3,9 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 class WebSite(models.Model):
+    '''
+    相册站点
+    '''
     web = models.CharField(_('网站'), max_length=20)
     uid = models.CharField(_('账号'), max_length=50)
     total_page = models.IntegerField(_('当前总页数'))
@@ -41,6 +44,28 @@ class Product(models.Model):
         self.is_posted = is_posted
         self.update_time = timezone.now()
         self.save()
+
+
+class Account(models.Model):
+    '''
+    发帖账号
+    '''
+    tieba = models.CharField(_('站点'), max_length=30, unique=True)
+    account = models.CharField(_('账号'), max_length=30)
+    password = models.CharField(_('密码'), max_length=20)
+    username = models.CharField(_('用户名'), max_length=30)
+    mobile = models.CharField(_('手机号'), max_length=11)
+    company = models.CharField(_('公司名'), max_length=100)
+    create_time = models.DateTimeField(_('创建时间'), default=timezone.now)
+    update_time = models.DateTimeField(_('更新时间'), default=timezone.now)
+
+    def __str__(self):
+        return '%s : %s' % (self.tieba, self.username)
+
+    class Meta:
+        unique_together = (('tieba', 'account'),)
+        verbose_name = verbose_name_plural = _('发帖账号')
+        db_table = 'tieba_account'
 
 
 class Record(models.Model):

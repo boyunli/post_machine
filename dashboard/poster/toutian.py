@@ -176,4 +176,7 @@ if __name__ == '__main__':
     account = '16620046225'
     password = 'bao1808lL'
     dispaly_name = '奢表小主'
+    # account = '18520293917'
+    # password = 'cg19881004'
+    # dispaly_name = '手机用户69894429459'
     TouTiao(account).main(account, password, dispaly_name)
