@@ -56,7 +56,7 @@ class TouTiao:
             return FAILED_STATUS, 'Failed!'
 
     def _upload_image(self):
-        referer = 'https://www.toutiao.com/c/user/99025955606/?publish=1%27'
+        referer = 'https://www.toutiao.com/c/user/99025955606/?publish=1%27'   #### 这里需要找到不同用户的 ID
         host = 'www.toutiao.com'
         url = 'https://www.toutiao.com/c/ugc/image/upload/'
         headers = rotate_headers(referer=referer, host=host)

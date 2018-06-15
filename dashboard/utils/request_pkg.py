@@ -23,7 +23,8 @@ def get_chrome_options(host=None, origin=None, referer=None, proxy=False):
     options.add_argument('headless')
     options.add_argument('lang=zh_CN.UTF-8')
     options.add_argument('user-agent={}'.format(get_ua()))
-    options.add_argument('--start-maximized')
+    # options.add_argument('--start-maximized')
+    options.add_argument('window-size=1920x1080')
     if host:
         options.add_argument('host={}'.format(host))
     if referer:
