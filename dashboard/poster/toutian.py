@@ -11,6 +11,7 @@ import random
 
 import requests
 from selenium import webdriver
+from django.db.models import Q
 
 from postsite.models import Product
 from utils.request_pkg import get_chrome_options, rotate_headers
@@ -25,7 +26,7 @@ class TouTiao:
         self.dir_path = os.path.join(BASE_DIR, 'static/toutiao/{}'.format(account))
         if not os.path.exists(self.dir_path):os.makedirs(self.dir_path)
         self.cookies_file = os.path.join(self.dir_path, 'cookies.txt')
-        self.product = Product.objects.filter(is_posted=0)[0]
+        self.product = Product.objects.filter(~Q(images=''), is_posted=0)[0]
         self.session = requests.Session()
 
     def main(self, account, password, display_name):
