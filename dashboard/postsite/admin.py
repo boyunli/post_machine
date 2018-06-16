@@ -1,13 +1,16 @@
 from django.contrib import admin
 
-from .models import WebSite, Product, Record
-
-@admin.register(WebSite)
-class WebSiteAdmin(admin.ModelAdmin):
-    list_display = ('web', 'uid', 'total_page', 'update_time')
+from .models import Product, Account, Record
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('website', 'url', 'is_posted', 'update_time')
+    list_display = ('album', 'url', 'is_posted', 'update_time')
 
-admin.site.register(Record)
+@admin.register(Account)
+class AccountAdmin(admin.ModelAdmin):
+    list_display = ('tieba', 'dispaly_name', 'update_time')
+
+@admin.register(Record)
+class RecordAdmin(admin.ModelAdmin):
+    list_display = ('account', 'product', 'status',
+                    'published_times', 'update_time')

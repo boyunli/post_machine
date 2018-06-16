@@ -11,7 +11,7 @@ from selenium import webdriver
 from lxml import etree
 from django.utils import timezone
 
-from postsite.models import WebSite, Product
+from postsite.models import WebAlbum, Product
 from utils.request_pkg import get_ua
 
 BASE_DIR = \
@@ -43,7 +43,7 @@ class UooTu:
             driver = webdriver.Chrome(executable_path="C:/Program Files (x86)/Google/Chrome/Application/chromedriver")
 
         try:
-            web = WebSite.objects.get(web=self.web, uid=self.uid)
+            web = WebAlbum.objects.get(web=self.web, uid=self.uid)
             total_page = web.total_page if web.total_page else initial_pages
             urls = self._construct_url(total_page)
         except:
@@ -54,7 +54,7 @@ class UooTu:
             html = etree.HTML(driver.page_source)
             total_page = ''.join(html.xpath('//ul[@class="ivu-page"]//li[@class="ivu-page-next"]/preceding-sibling::li[1]/@title'))
             total_page = int(total_page) if total_page else 0
-            site = self._web_pipeline(total_page)
+            album = self._album_pipeline(total_page)
 
             hrefs = html.xpath('//div[@class="photos-container"]//div[@class="photos-item"]//a[@class="photos-item-link"]/@href')
             for href in hrefs:
@@ -65,15 +65,15 @@ class UooTu:
                     content = '' .join(html.xpath('//div[@class="textOmit title-content"]/text()'))
                     srcs = html.xpath('//div[@class="images-wrapper"]//img/@src')
                     images = '**'.join([src.replace('-zMin', '') for src in srcs if 'http://cdn' in src])
-                    self._ps_pipeline(site, href, content, images)
+                    self._ps_pipeline(album, href, content, images)
                 except:
                     continue
 
-    def _web_pipeline(self, total_page):
+    def _album_pipeline(self, total_page):
         '''
-        保存 WebSite
+        保存 WebAlbum
         '''
-        web, created = WebSite.objects.get_or_create(
+        web, created = WebAlbum.objects.get_or_create(
             web=self.web,
             uid=self.uid,
             defaults={'total_page': total_page}
@@ -84,9 +84,9 @@ class UooTu:
             web.save()
         return web
 
-    def _ps_pipeline(self, website, url, content, images):
+    def _ps_pipeline(self, album, url, content, images):
         product, created = Product.objects.get_or_create(
-            website=website,
+            album=album,
             url=url,
             defaults = {
                 'content': content,

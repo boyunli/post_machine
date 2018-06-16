@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-class WebSite(models.Model):
+class WebAlbum(models.Model):
     '''
     相册站点
     '''
@@ -16,15 +16,15 @@ class WebSite(models.Model):
 
     class Meta:
         unique_together = (('web', 'uid'), )
-        verbose_name = verbose_name_plural = _('站点')
-        db_table = 'postsite_web'
+        verbose_name = verbose_name_plural = _('相册')
+        db_table = 'postsite_album'
 
 
 class Product(models.Model):
     '''
     存放爬取到的相册商品数据
     '''
-    website = models.ForeignKey(WebSite, verbose_name=_('WebSite'),
+    album = models.ForeignKey(WebAlbum, verbose_name=_('相册'),
                               on_delete=models.CASCADE)
     url = models.CharField(_('商品地址'), max_length=200, unique=True)
     content = models.TextField(_('描述'))
@@ -34,7 +34,7 @@ class Product(models.Model):
     update_time = models.DateTimeField(_('更新时间'), default=timezone.now)
 
     def __str__(self):
-        return '%s:%s' % (self.url, self.is_posted)
+        return '%s:%s:%s' % (self.album, self.url, self.is_posted)
 
     class Meta:
         verbose_name = verbose_name_plural = _('商品')
@@ -46,26 +46,41 @@ class Product(models.Model):
         self.save()
 
 
+class Tieba(models.Model):
+    '''
+    贴吧
+    '''
+    site = models.CharField(_('站点'), max_length=30, unique=True)
+
+    def __str__(self):
+        return '%s' % (self.site)
+
+    class Meta:
+        verbose_name = verbose_name_plural = _('贴吧')
+        db_table = 'postsite_tieba'
+
+
 class Account(models.Model):
     '''
     发帖账号
     '''
-    tieba = models.CharField(_('站点'), max_length=30, unique=True)
+    tieba = models.ForeignKey(Tieba, verbose_name=_('Tieba'),
+                              on_delete=models.CASCADE)
     account = models.CharField(_('账号'), max_length=30)
     password = models.CharField(_('密码'), max_length=20)
-    username = models.CharField(_('用户名'), max_length=30)
+    dispaly_name = models.CharField(_('用户名'), max_length=30)
+    domain = models.CharField(_('新浪域名'), max_length=30, null=True)
     mobile = models.CharField(_('手机号'), max_length=11)
-    company = models.CharField(_('公司名'), max_length=100)
     create_time = models.DateTimeField(_('创建时间'), default=timezone.now)
     update_time = models.DateTimeField(_('更新时间'), default=timezone.now)
 
     def __str__(self):
-        return '%s : %s' % (self.tieba, self.username)
+        return '%s : %s' % (self.tieba, self.dispaly_name)
 
     class Meta:
         unique_together = (('tieba', 'account'),)
         verbose_name = verbose_name_plural = _('发帖账号')
-        db_table = 'tieba_account'
+        db_table = 'postsite_account'
 
 
 class Record(models.Model):
@@ -81,10 +96,10 @@ class Record(models.Model):
         (FAILED_STATUS, _('发帖失败!')),
     )
 
+    account = models.ForeignKey(Account, verbose_name=_('Account'),
+                              on_delete=models.CASCADE, null=True)
     product = models.ForeignKey(Product, verbose_name=_('Product'),
                               on_delete=models.CASCADE)
-    site = models.CharField(_('发帖平台'), max_length=80)
-    wechat = models.CharField(_('微信'), max_length=20)
     status = models.IntegerField(_('状态'), choices=POSTED_STATUS_CHOICES, default=0)
     memo = models.CharField(_('备注'),  max_length=200)
     published_times = models.IntegerField(_('发帖次数'), default=DEFAULT_STATUS)
@@ -92,37 +107,37 @@ class Record(models.Model):
 
     def __str__(self):
         return '%s;%s;%s' \
-            % (self.product, self.wechat, self.published_times)
+            % (self.account, self.product, self.published_times)
 
     class Meta:
-        unique_together = (('product', 'site'),)
+        unique_together = (('product', 'account'),)
         verbose_name = verbose_name_plural = _('发帖纪录')
         db_table = 'postsite_record'
 
-    @classmethod
-    def update_status(cls, product_id, site, status, memo):
-        product = Product.objects.get(id=product_id)
-        material = cls.objects.get(product=product, site=site)
-        material.status = status
-        material.memo = memo
-        material.update_time = timezone.now()
-        material.save()
+    # @classmethod
+    # def update_status(cls, product_id, site, status, memo):
+    #     product = Product.objects.get(id=product_id)
+    #     material = cls.objects.get(product=product, site=site)
+    #     material.status = status
+    #     material.memo = memo
+    #     material.update_time = timezone.now()
+    #     material.save()
 
-    @staticmethod
-    def save_to_materials(titles, wechat, product_id):
-        for title in titles:
-            update_time = timezone.now()
-            product = Product.objects.get(id=product_id)
-            material, created = Record.objects\
-                .get_or_create(product=product, defaults = {
-                    'wechat': wechat,
-                    'published_times': 1,
-                    'update_time': update_time,
-                })
-            if not created:
-                material.wechat = wechat
-                material.update_time = update_time
-                published_times = Record.objects.filter(title=title)\
-                .values('published_times')[0]['published_times']
-                material.published_times =  published_times + 1
-                material.save()
+    # @staticmethod
+    # def save_to_materials(titles, wechat, product_id):
+    #     for title in titles:
+    #         update_time = timezone.now()
+    #         product = Product.objects.get(id=product_id)
+    #         material, created = Record.objects\
+    #             .get_or_create(product=product, defaults = {
+    #                 'wechat': wechat,
+    #                 'published_times': 1,
+    #                 'update_time': update_time,
+    #             })
+    #         if not created:
+    #             material.wechat = wechat
+    #             material.update_time = update_time
+    #             published_times = Record.objects.filter(title=title)\
+    #             .values('published_times')[0]['published_times']
+    #             material.published_times =  published_times + 1
+    #             material.save()
