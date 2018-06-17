@@ -209,16 +209,16 @@ CELERYBEAT_SCHEDULE={
     'post_toutiao': {
         'task': 'post_toutiao',
         # 'schedule': timedelta(minutes=0.1),
-        # 8-22
-        'schedule': crontab(minute='02', hour='0-14'),
+        # 8-22, per 2 hour
+        'schedule': crontab(minute='02', hour='0,2,4,6,8,10,12,14'),
         'options': {'queue': 'post_toutiao_queue',
                     'routing_key': 'for_post_toutiao'}
     },
     'post_weibo': {
         'task': 'post_weibo',
         #'schedule': timedelta(minutes=0.1),
-        # 8-22
-        'schedule': crontab(minute=25, hour='0-14'),
+        # 'schedule': crontab(minute=25, hour='0-14'),
+        'schedule': crontab(minute='25', hour='0,2,4,6,8,10,12,14'),
         'options': {'queue': 'post_weibo_queue',
                     'routing_key': 'for_post_weibo'}
     },

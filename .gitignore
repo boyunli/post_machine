@@ -107,3 +107,5 @@ dashboard/static/toutiao/16620046225/images/
 dashboard/static/toutiao/18520293917/images/
 dashboard/static/weibo/13250329052/images/
 dashboard/static/weibo/18520613361/images/
+dashboard/poster/toutiao.py
+dashboard/poster/weibo.py
