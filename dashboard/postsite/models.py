@@ -68,14 +68,14 @@ class Account(models.Model):
                               on_delete=models.CASCADE)
     account = models.CharField(_('账号'), max_length=30)
     password = models.CharField(_('密码'), max_length=20)
-    dispaly_name = models.CharField(_('用户名'), max_length=30)
+    display_name = models.CharField(_('用户名'), max_length=30)
     domain = models.CharField(_('新浪域名'), max_length=30, null=True)
     mobile = models.CharField(_('手机号'), max_length=11)
     create_time = models.DateTimeField(_('创建时间'), default=timezone.now)
     update_time = models.DateTimeField(_('更新时间'), default=timezone.now)
 
     def __str__(self):
-        return '%s : %s' % (self.tieba, self.dispaly_name)
+        return '%s : %s' % (self.tieba, self.display_name)
 
     class Meta:
         unique_together = (('tieba', 'account'),)
@@ -114,30 +114,26 @@ class Record(models.Model):
         verbose_name = verbose_name_plural = _('发帖纪录')
         db_table = 'postsite_record'
 
-    # @classmethod
-    # def update_status(cls, product_id, site, status, memo):
-    #     product = Product.objects.get(id=product_id)
-    #     material = cls.objects.get(product=product, site=site)
-    #     material.status = status
-    #     material.memo = memo
-    #     material.update_time = timezone.now()
-    #     material.save()
-
-    # @staticmethod
-    # def save_to_materials(titles, wechat, product_id):
-    #     for title in titles:
-    #         update_time = timezone.now()
-    #         product = Product.objects.get(id=product_id)
-    #         material, created = Record.objects\
-    #             .get_or_create(product=product, defaults = {
-    #                 'wechat': wechat,
-    #                 'published_times': 1,
-    #                 'update_time': update_time,
-    #             })
-    #         if not created:
-    #             material.wechat = wechat
-    #             material.update_time = update_time
-    #             published_times = Record.objects.filter(title=title)\
-    #             .values('published_times')[0]['published_times']
-    #             material.published_times =  published_times + 1
-    #             material.save()
+    @staticmethod
+    def save_to_record(account_id, product_id, status, memo):
+        update_time = timezone.now()
+        account = Account.objects.get(id=account_id)
+        product = Product.objects.get(id=product_id)
+        material, created = Record.objects\
+            .get_or_create(
+                product=product,
+                account=account,
+                defaults = {
+                    'status': status,
+                    'memo': memo,
+                    'published_times': 1,
+                    'update_time': update_time,
+            })
+        if not created:
+            material.status = status
+            material.memo = memo
+            material.update_time = update_time
+            published_times = Record.objects.filter(account=account, product=product)\
+            .values('published_times')[0]['published_times']
+            material.published_times =  published_times + 1
+            material.save()

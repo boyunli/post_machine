@@ -24,18 +24,18 @@ BASE_DIR = \
 
 
 class WeiBo:
-    def __init__(self, account):
+    def __init__(self, account, product):
         self.dir_path = os.path.join(BASE_DIR, 'static/weibo/{}'.format(account))
         if not os.path.exists(self.dir_path):os.makedirs(self.dir_path)
         self.cookies_file = os.path.join(self.dir_path, 'cookies.txt')
-        self.product = Product.objects.filter(~Q(images=''), is_posted=0)[0]
         self.session = requests.Session()
+        self.product = product
 
     def main(self, account, password, display_name, domain):
         self._load_cookies()
-        self._post(dispaly_name, domain)
+        return self._post(account, password, display_name, domain)
 
-    def _post(self, dispaly_name, domain):
+    def _post(self, account, password, display_name, domain):
         # referer = 'https://weibo.com/5127234756/profile?profile_ftype=1&is_ori=1'
         referer = 'https://weibo.com/{d}/home?wvr=5&lf=reg'.format(d=domain)
         host = 'weibo.com'
@@ -46,7 +46,7 @@ class WeiBo:
 
         headers = rotate_headers(referer=referer, host=host, origin=origin)
 
-        uri = self._upload_image(domain, dispaly_name)
+        uri = self._upload_image(domain, display_name)
         uris = '|'.join(uri)
         data = {
             'title': '有什么新鲜事想告诉大家?',
@@ -69,16 +69,25 @@ class WeiBo:
             '_t': '0'
         }
         resp = self.session.post(url, verify=False, headers=headers, data=data)
-        text = json.loads(resp.text)
+        try:
+            text = json.loads(resp.text)
+        except json.decoder.JSONDecodeError:
+            self._login(account, password, display_name)
+            uri = self._upload_image(domain, display_name)
+            uris = '|'.join(uri)
+            data['pic_id'] = uris
+            data['updata_img_num'] = len(uri)
+            resp = self.session.post(url, verify=False, headers=headers, data=data)
+            text = json.loads(resp.text)
         if text['code'] == "100000":
-            print('\033[94m 微博: {} 发帖成功 \033[0m'.format(self.product.content))
+            print('\033[94m 微博: {} 发帖成功 \033[0m'.format(display_name))
             self.product.update_status(is_posted=1)
             return SUCCEED_STATUS, 'Succeed!'
         else:
-            print('\033[94m 微博: {} 发帖失败 \033[0m'.format(text['msg']))
-            return FAILED_STATUS, 'Failed!'
+            print('\033[94m 微博: {} 发帖失败 \033[0m'.format(display_name))
+            return FAILED_STATUS, text['msg']
 
-    def _upload_image(self, domain, dispaly_name):
+    def _upload_image(self, domain, display_name):
         referer = 'https://weibo.com/{d}/home?wvr=5&lf=reg'.format(d=domain)
         host = 'picupload.weibo.com'
         timestamp = int(time.time()*100000)
@@ -86,7 +95,7 @@ class WeiBo:
         cb = 'https://weibo.com/aj/static/upimgback.html?_wv=5&callback=STK_ijax_{t}'.format(t=timestamp)
         if 'liling' in domain:
             url_ = 'weibo.com/{}'.format(domain)
-            nick = '@{}'.format(dispaly_name)
+            nick = '@{}'.format(display_name)
         else:
             url_ = 0
             nick = 0
@@ -107,9 +116,13 @@ class WeiBo:
                                      data={'b64_data':b64_image}, allow_redirects=False)
             location = resp.headers.get('Location')
             if location:
-                print('{} 图片上传成功'.format(image_name))
-                img_name = parse.parse_qs(parse.urlparse(location).query)['pid'][0]
-                print('图片地址为:{}'.format('https://wx2.sinaimg.cn/square/'+ img_name + '.jpg'))
+                try:
+                    img_name = parse.parse_qs(parse.urlparse(location).query)['pid'][0]
+                except:
+                    print('{} 图片上传失败'.format(image_name))
+                    continue
+                print('{}上传成功，图片地址为:{}'\
+                      .format(image_name, 'https://wx2.sinaimg.cn/square/'+ img_name + '.jpg'))
                 uris.append(img_name)
             else:
                 continue
@@ -143,7 +156,7 @@ class WeiBo:
         index = random.randint(0, len(files)-1)
         return files[index]
 
-    def _login(self, account, password, dispaly_name, is_linux=True):
+    def _login(self, account, password, display_name, is_linux=True):
         login_url = "https://weibo.com/"
         if is_linux:
             chrome_options = get_chrome_options()
@@ -152,20 +165,20 @@ class WeiBo:
             driver = webdriver.Chrome(executable_path="C:/Program Files (x86)/Google/Chrome/Application/chromedriver")
         driver.get(login_url)
         # 账号登录
-        time.sleep(3)
+        time.sleep(15)
         driver.find_element_by_xpath('//input[@id="loginname"]').send_keys(account)
         driver.find_element_by_xpath('//input[@type="password" and @class="W_input"]').send_keys(password)
         driver.find_element_by_xpath('//a[@class="W_btn_a btn_32px" and @action-type="btn_submit"]').click()
 
         cookies = driver.get_cookies()
         login_cookies = {item["name"] : item["value"] for item in cookies}
-        if self._check_login(dispaly_name, driver=driver):
+        if self._check_login(display_name, driver=driver):
             with open(self.cookies_file, "w") as f:
                 json.dump(login_cookies, f)
             self.session.cookies.update(login_cookies)
-            print('{} 登录成功！'.format(dispaly_name))
+            print('{} 登录成功！'.format(display_name))
         else:
-            print('{} 登录失败！'.format(dispaly_name))
+            print('{} 登录失败！'.format(display_name))
 
     def _check_login(self, username, driver):
        '''
@@ -192,12 +205,13 @@ class WeiBo:
 
 
 if __name__ == '__main__':
-    account = '18520613361'
-    password = 'lilingvae00'
-    dispaly_name = '奢表小主'
-    domain = 'lilingvae00'
-    # account = '13250329052'
-    # password = 'cg19881004+'
-    # dispaly_name = '瑞士复刻手表'
-    # domain = 'watch1905'
-    WeiBo(account).main(account, password, dispaly_name, domain)
+    # account = '18520613361'
+    # password = 'lilingvae00'
+    # display_name = '奢表小主'
+    # domain = 'lilingvae00'
+    account = '13250329052'
+    password = 'cg19881004+'
+    display_name = '瑞士复刻手表'
+    domain = 'watch1905'
+    product = Product.objects.filter(~Q(images=''), is_posted=0)[0]
+    WeiBo(account, product).main(account, password, display_name, domain)

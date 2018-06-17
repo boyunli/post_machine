@@ -189,3 +189,55 @@ LOGGING = {
                 },
             },
     }
+
+
+###############  添加celery配置  ###############################
+BROKER_URL = 'redis://:helloworld@127.0.0.1:6379/9'
+CELERY_RESULT_BACKEND = 'redis://:helloworld@127.0.0.1:6379/10'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_IGNORE_RESULT = True
+
+# 任务队列
+from kombu import Exchange, Queue
+from celery.schedules import crontab
+#from datetime import timedelta
+
+CELERYBEAT_SCHEDULE={
+    'post_toutiao': {
+        'task': 'post_toutiao',
+        # 'schedule': timedelta(minutes=0.1),
+        # 8-22
+        'schedule': crontab(minute='02', hour='0-14'),
+        'options': {'queue': 'post_toutiao_queue',
+                    'routing_key': 'for_post_toutiao'}
+    },
+    'post_weibo': {
+        'task': 'post_weibo',
+        #'schedule': timedelta(minutes=0.1),
+        # 8-22
+        'schedule': crontab(minute=25, hour='0-14'),
+        'options': {'queue': 'post_weibo_queue',
+                    'routing_key': 'for_post_weibo'}
+    },
+}
+
+CELERY_QUEUES = (
+    Queue('default', Exchange('default'), routing_key='default'),
+    Queue('post_toutiao_queue',
+          Exchange('post_toutiao', type='direct'),
+          routing_key='for_post_toutiao'),
+    Queue('post_weibo_queue',
+          Exchange('post_weibo', type='direct'),
+          routing_key='for_post_weibo'),
+)
+
+CELERY_ROUTES = {
+    'post_toutiao': {'queue': 'post_toutiao_queue',
+                     'routing_key': 'for_post_toutiao'},
+    'post_weibo': {'queue': 'post_weibo_queue',
+                     'routing_key': 'for_post_weibo'},
+}
+
