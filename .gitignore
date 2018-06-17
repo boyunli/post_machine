@@ -109,3 +109,5 @@ dashboard/static/weibo/13250329052/images/
 dashboard/static/weibo/18520613361/images/
 dashboard/poster/toutiao.py
 dashboard/poster/weibo.py
+dump.rdb
+dashboard/celerybeat.pid

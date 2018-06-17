@@ -222,6 +222,12 @@ CELERYBEAT_SCHEDULE={
         'options': {'queue': 'post_weibo_queue',
                     'routing_key': 'for_post_weibo'}
     },
+    'crawl_uootu': {
+        'task': 'crawl_uootu',
+        'schedule': crontab(hour=7, minute=0, day_of_week='sunday'),
+        'options': {'queue': 'crawl_uootu_queue',
+                    'routing_key': 'for_crawl_uootu'}
+    },
 }
 
 CELERY_QUEUES = (
@@ -232,6 +238,9 @@ CELERY_QUEUES = (
     Queue('post_weibo_queue',
           Exchange('post_weibo', type='direct'),
           routing_key='for_post_weibo'),
+    Queue('crawl_uootu_queue',
+          Exchange('crawl_uootu', type='direct'),
+          routing_key='for_crawl_uootu'),
 )
 
 CELERY_ROUTES = {
@@ -239,5 +248,7 @@ CELERY_ROUTES = {
                      'routing_key': 'for_post_toutiao'},
     'post_weibo': {'queue': 'post_weibo_queue',
                      'routing_key': 'for_post_weibo'},
+    'crawl_uootu': {'queue': 'crawl_uootu_queue',
+                     'routing_key': 'for_crawl_uootu'},
 }
 

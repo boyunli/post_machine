@@ -6,6 +6,7 @@ from django.db.models import Q
 from .models import Product, Account, Record
 from poster.toutiao import TouTiao
 from poster.weibo import WeiBo
+from crawler.uootu import UooTu
 
 logger = logging.getLogger('tieba')
 
@@ -35,3 +36,12 @@ def post_weibo(self):
             .main(account['account'], account['password'],
                   account['display_name'], account['domain'])
         Record.save_to_record(account['id'], product.id, status, memo)
+
+@task(name="crawl_uootu", bind=True)
+def crawl_uootu(self):
+    '''
+    微博
+    '''
+    number = 92097436
+    UooTu(number).crawl_watch()
+
