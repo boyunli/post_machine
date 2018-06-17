@@ -111,3 +111,4 @@ dashboard/poster/toutiao.py
 dashboard/poster/weibo.py
 dump.rdb
 dashboard/celerybeat.pid
+dashboard/dashboard/settings.py
