@@ -32,7 +32,7 @@ class UooTu:
         return [urljoin(self.host, '{}/{}'.format(self.uid, page))
                 for page in range(1, total_page+1)]
 
-    def crawl_watch(self, is_linux=True, initial_pages=16):
+    def crawl_watch(self, category, is_linux=True, initial_pages=16):
         if is_linux:
             chrome_options = webdriver.ChromeOptions()
             chrome_options.add_argument('headless')
@@ -63,9 +63,10 @@ class UooTu:
                     time.sleep(5)
                     html = etree.HTML(driver.page_source)
                     content = '' .join(html.xpath('//div[@class="textOmit title-content"]/text()'))
+                    print('\033[96m 爬取商品；{} \033[0m'.format(content))
                     srcs = html.xpath('//div[@class="images-wrapper"]//img/@src')
                     images = '**'.join([src.replace('-zMin', '') for src in srcs if 'http://cdn' in src])
-                    self._ps_pipeline(album, href, content, images)
+                    self._ps_pipeline(album, href, content, images, category)
                 except:
                     continue
 
@@ -84,21 +85,26 @@ class UooTu:
             web.save()
         return web
 
-    def _ps_pipeline(self, album, url, content, images):
+    def _ps_pipeline(self, album, url, content, images, category):
         product, created = Product.objects.get_or_create(
             album=album,
             url=url,
             defaults = {
                 'content': content,
-                'images': images
+                'images': images,
+                'category': category
             })
         if not created:
             product.content = content
             product.images = images
+            product.category = category
             product.save()
 
 
 
 if __name__ == '__main__':
-    number = 92097436
-    UooTu(number).crawl_watch()
+    # numbers = [(92097436, '手表'), (45458392, '包包')]
+    items = [(45458392, '包包')]
+    for item in items:
+        number, category = item
+        UooTu(number).crawl_watch(category)

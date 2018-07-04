@@ -30,6 +30,7 @@ class Product(models.Model):
     content = models.TextField(_('描述'))
     images = models.TextField(_('图片'))
     is_posted = models.IntegerField(_('是否发过帖'), default=0)
+    category = models.CharField(_('类别'), max_length=10, default='手表')
     create_time = models.DateTimeField(_('创建时间'), default=timezone.now)
     update_time = models.DateTimeField(_('更新时间'), default=timezone.now)
 
@@ -71,6 +72,7 @@ class Account(models.Model):
     display_name = models.CharField(_('用户名'), max_length=30)
     domain = models.CharField(_('新浪域名'), max_length=30, null=True)
     mobile = models.CharField(_('手机号'), max_length=11)
+    category = models.CharField(_('类别'), max_length=10, default='手表')
     create_time = models.DateTimeField(_('创建时间'), default=timezone.now)
     update_time = models.DateTimeField(_('更新时间'), default=timezone.now)
 

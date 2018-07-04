@@ -4,11 +4,11 @@ from .models import Product, Account, Record, Tieba
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('album', 'url', 'is_posted', 'update_time')
+    list_display = ('album', 'url', 'is_posted', 'update_time', 'category')
 
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
-    list_display = ('tieba', 'display_name', 'update_time')
+    list_display = ('tieba', 'display_name', 'update_time', 'category')
 
 @admin.register(Record)
 class RecordAdmin(admin.ModelAdmin):
