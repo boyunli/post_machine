@@ -84,9 +84,8 @@ class WeiBo:
             self.product.update_status(is_posted=1)
             return SUCCEED_STATUS, 'Succeed!'
         else:
-            msg = text['msg'].encode('utf-8').decode('unicode_escape')
-            print('\033[94m 微博: {} 发帖失败: {} \033[0m'.format(display_name, msg))
-            return FAILED_STATUS, msg
+            print('\033[94m 微博: {} 发帖失败 \033[0m'.format(display_name))
+            return FAILED_STATUS, text['msg']
 
     def _upload_image(self, domain, display_name):
         referer = 'https://weibo.com/{d}/home?wvr=5&lf=reg'.format(d=domain)
@@ -202,3 +201,18 @@ class WeiBo:
             cookies = json.load(f)
             self.session.cookies.update(cookies)
 
+
+
+
+if __name__ == '__main__':
+    account = '18520613361'
+    password = 'lilingvae00'
+    display_name = '奢表小主'
+    domain = 'lilingvae00'
+    category = '手表'
+    # account = '13250329052'
+    # password = 'cg19881004+'
+    # display_name = '瑞士复刻手表'
+    # domain = 'watch1905'
+    product = Product.objects.filter(~Q(images=''), category=category, is_posted=0)[0]
+    WeiBo(account, product).main(account, password, display_name, domain)
