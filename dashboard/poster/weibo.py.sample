@@ -203,16 +203,3 @@ class WeiBo:
 
 
 
-
-if __name__ == '__main__':
-    account = '18520613361'
-    password = 'lilingvae00'
-    display_name = '奢表小主'
-    domain = 'lilingvae00'
-    category = '手表'
-    # account = '13250329052'
-    # password = 'cg19881004+'
-    # display_name = '瑞士复刻手表'
-    # domain = 'watch1905'
-    product = Product.objects.filter(~Q(images=''), category=category, is_posted=0)[0]
-    WeiBo(account, product).main(account, password, display_name, domain)

@@ -173,14 +173,3 @@ class TouTiao:
 
 
 
-
-if __name__ == '__main__':
-    account = '16620046225'
-    password = 'bao1808lL'
-    display_name = '奢表小主'
-    # account = '18520293917'
-    # password = 'cg19881004'
-    # display_name = '手机用户69894429459'
-    category = '包包'
-    product = Product.objects.filter(~Q(images=''), category=category, is_posted=0)[0]
-    TouTiao(account, product).main(account, password, display_name)
