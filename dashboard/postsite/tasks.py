@@ -15,7 +15,7 @@ def post_toutiao(self):
     '''
     今日头条
     '''
-    accounts = Account.objects.filter(tieba__site='今日头条')\
+    accounts = Account.objects.filter(tieba__site='今日头条', is_valid=1)\
         .values('id', 'account', 'password', 'display_name', 'category')
     for account in accounts:
         product = Product.objects.filter(
@@ -29,7 +29,7 @@ def post_weibo(self):
     '''
     微博
     '''
-    accounts = Account.objects.filter(tieba__site='微博')\
+    accounts = Account.objects.filter(tieba__site='微博', is_valid=1)\
         .values('id', 'account', 'password', 'display_name', 'domain', 'category')
     for account in accounts:
         product = Product.objects.filter(

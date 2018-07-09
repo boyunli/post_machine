@@ -8,7 +8,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
-    list_display = ('tieba', 'display_name', 'update_time', 'category')
+    list_display = ('tieba', 'display_name', 'update_time', 'category', 'is_valid')
 
 @admin.register(Record)
 class RecordAdmin(admin.ModelAdmin):

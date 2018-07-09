@@ -65,6 +65,10 @@ class Account(models.Model):
     '''
     发帖账号
     '''
+    VALID_CHOICES = (
+        (0, '无效'),
+        (1, '有效'),
+    )
     tieba = models.ForeignKey(Tieba, verbose_name=_('Tieba'),
                               on_delete=models.CASCADE)
     account = models.CharField(_('账号'), max_length=30)
@@ -73,6 +77,7 @@ class Account(models.Model):
     domain = models.CharField(_('新浪域名'), max_length=30, null=True)
     mobile = models.CharField(_('手机号'), max_length=11)
     category = models.CharField(_('类别'), max_length=10, default='手表')
+    is_valid = models.IntegerField(_('是否有效'), choices=VALID_CHOICES, default=1)
     create_time = models.DateTimeField(_('创建时间'), default=timezone.now)
     update_time = models.DateTimeField(_('更新时间'), default=timezone.now)
 
